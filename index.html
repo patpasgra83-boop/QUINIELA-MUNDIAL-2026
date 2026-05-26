@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Quiniela Mundial 2026 PRO</title>
+<style>
+:root{--bg:#07111f;--panel:#102033;--line:rgba(255,255,255,.12);--txt:#f8fafc;--mut:#b6c6d8;--g:#22c55e;--b:#38bdf8;--y:#facc15;--r:#ef4444}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--txt);background:radial-gradient(circle at top left,rgba(34,197,94,.20),transparent 28%),radial-gradient(circle at bottom right,rgba(56,189,248,.18),transparent 30%),var(--bg);min-height:100vh}
+.wrap{max-width:1320px;margin:auto;padding:22px}header{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+h1{font-size:42px;line-height:1;margin:8px 0;font-weight:900}h2,h3{margin:0 0 10px}.muted{color:var(--mut)}.pill{display:inline-flex;gap:8px;align-items:center;background:rgba(34,197,94,.16);border:1px solid rgba(34,197,94,.28);color:#dcfce7;padding:8px 12px;border-radius:999px;font-weight:800;font-size:14px}
+.card{background:rgba(16,32,51,.90);border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:0 18px 45px rgba(0,0,0,.22)}.grid{display:grid;grid-template-columns:260px 1fr;gap:16px}.tabs{display:flex;flex-direction:column;gap:10px}
+button{border:0;border-radius:14px;padding:11px 14px;font-weight:800;cursor:pointer;background:#e2e8f0;color:#07111f}.tab{background:rgba(255,255,255,.08);color:white;border:1px solid var(--line);text-align:left}.active{background:linear-gradient(135deg,#16a34a,#0ea5e9)!important}.primary{background:linear-gradient(135deg,#22c55e,#38bdf8);color:#061018}.ghost{background:rgba(255,255,255,.08);color:white;border:1px solid var(--line)}.danger{background:#fee2e2;color:#991b1b}.okbtn{background:#dcfce7;color:#166534}
+input,select{width:100%;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.13);background:#071827;color:white;outline:none}label{font-size:12px;color:var(--mut);font-weight:800;display:block;margin-bottom:6px}.formgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hidden{display:none}.small{font-size:12px}.scroll{max-height:630px;overflow:auto;padding-right:4px}
+.notice{background:rgba(250,204,21,.13);border:1px solid rgba(250,204,21,.28);border-radius:18px;padding:12px;color:#fef9c3}.player{display:flex;justify-content:space-between;gap:12px;align-items:center;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:8px}.group{margin:14px 0;padding:16px;border-radius:20px;background:rgba(255,255,255,.055);border:1px solid var(--line)}
+.match{display:grid;grid-template-columns:1fr 68px 28px 68px 1fr;gap:8px;align-items:center;margin:8px 0}.match input{text-align:center}.center{text-align:center}
+.table{width:100%;border-collapse:collapse}.table th,.table td{border-bottom:1px solid var(--line);padding:10px;text-align:left;font-size:14px}.table th{background:rgba(255,255,255,.06);color:#dbeafe}.scorebox{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.kpi{background:rgba(255,255,255,.07);border:1px solid var(--line);padding:14px;border-radius:18px}.kpi b{font-size:24px}
+.locked{opacity:.55;pointer-events:none}.tag{display:inline-block;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.09);font-size:12px;margin-left:6px}.good{color:#86efac}.bad{color:#fecaca}.warn{color:#fef08a}
+@media(max-width:900px){.grid,.formgrid,.twocol,.scorebox{grid-template-columns:1fr}.wrap{padding:14px}h1{font-size:32px}.match{grid-template-columns:1fr 52px 20px 52px 1fr;font-size:13px}.tabs{position:static}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<div>
+<div class="pill">🏆 Quiniela Mundial 2026 PRO</div>
+<h1>La Porra del Mundial</h1>
+<p class="muted">Versión PRO local: modo jugador/admin, bloqueo de predicciones, alias inteligentes, ranking y exportación de datos.</p>
+<p><a style="color:#7dd3fc;font-weight:bold" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures" target="_blank">🔗 Calendario y grupos oficiales FIFA</a></p>
+</div>
+<div class="card" style="min-width:280px">
+<h3>Sesión</h3>
+<p class="muted">Modo: <b id="modeLabel">Jugador</b></p>
+<p class="muted">Jugador activo: <b id="activePlayerLabel">Sin seleccionar</b></p>
+<p class="muted">Estado: <b id="lockLabel" class="good">Abierta</b></p>
+</div>
+</header>
+
+<section class="grid">
+<aside class="tabs card">
+<button class="tab active" onclick="showTab('home',this)">🏠 Inicio</button>
+<button class="tab" onclick="showTab('players',this)">👥 Jugadores</button>
+<button class="tab" onclick="showTab('predict',this)">📝 Mis predicciones</button>
+<button class="tab" onclick="showTab('ranking',this)">🏅 Ranking</button>
+<button class="tab adminOnly" onclick="showTab('admin',this)">🛡️ Admin</button>
+<button class="tab adminOnly" onclick="showTab('results',this)">✅ Resultados reales</button>
+<button class="tab adminOnly" onclick="showTab('setup',this)">🌍 Grupos</button>
+<button class="tab" onclick="showTab('rules',this)">📋 Reglas</button>
+<button class="ghost" onclick="toggleMode()">Cambiar jugador/admin</button>
+<button class="ghost" onclick="exportData()">Exportar datos</button>
+<label class="ghost adminOnly" style="padding:11px 14px;border-radius:14px;text-align:center;cursor:pointer">Importar datos<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+<button class="danger adminOnly" onclick="resetApp()">Reiniciar app</button>
+</aside>
+
+<main>
+<section id="home" class="tabpane card">
+<h2>🏠 Panel principal</h2>
+<div class="scorebox">
+<div class="kpi"><span class="muted">Jugadores</span><br><b id="kpiPlayers">0</b></div>
+<div class="kpi"><span class="muted">Predicciones</span><br><b id="kpiPreds">0</b></div>
+<div class="kpi"><span class="muted">Partidos grupos</span><br><b id="kpiMatches">72</b></div>
+<div class="kpi"><span class="muted">Líder</span><br><b id="kpiLeaderHome">-</b></div>
+</div><br>
+<div class="notice"><b>Cómo usar:</b> crea jugadores, selecciona tu jugador activo y rellena “Mis predicciones”. El admin introduce resultados reales y puede bloquear la quiniela.</div>
+</section>
+
+<section id="players" class="tabpane card hidden">
+<h2>👥 Jugadores</h2>
+<div class="formgrid">
+<div><label>Nombre</label><input id="newPlayer" placeholder="Patri, Jorge, Equipo 1..."></div>
+<div><label>Alias</label><input id="newAlias" placeholder="Opcional"></div>
+<div><label>PIN jugador opcional</label><input id="newPin" placeholder="Ej. 1234"></div>
+<div style="display:flex;align-items:end"><button class="primary" onclick="addPlayer()">Añadir</button></div>
+</div>
+<div id="playersList"></div>
+</section>
+
+<section id="predict" class="tabpane card hidden">
+<h2>📝 Mis predicciones</h2>
+<div class="formgrid">
+<div><label>Jugador activo</label><select id="activePlayer" onchange="selectActivePlayer()"></select></div>
+<div><label>PIN si tiene</label><input id="playerPin" placeholder="PIN"></div>
+<div style="display:flex;align-items:end"><button class="okbtn" onclick="unlockPlayer()">Desbloquear jugador</button></div>
+<div style="display:flex;align-items:end"><button class="primary" onclick="savePredictions()">Guardar predicciones</button></div>
+</div><br>
+<div id="predictionLockNotice"></div>
+<div id="predictionsPanel" class="scroll"></div>
+</section>
+
+<section id="admin" class="tabpane card hidden">
+<h2>🛡️ Panel admin</h2>
+<div class="notice">PIN admin por defecto: <b>admin2026</b>. Puedes cambiarlo desde aquí.</div><br>
+<div class="formgrid">
+<div><label>PIN admin</label><input id="adminPinInput" placeholder="admin2026"></div>
+<div style="display:flex;align-items:end"><button class="primary" onclick="unlockAdmin()">Entrar admin</button></div>
+<div><label>Fecha/hora cierre predicciones</label><input id="deadlineInput" type="datetime-local" onchange="saveDeadline()"></div>
+<div style="display:flex;align-items:end"><button class="ghost" onclick="toggleManualLock()">Bloquear/desbloquear manual</button></div>
+</div><br>
+<div class="formgrid">
+<div><label>Nuevo PIN admin</label><input id="newAdminPin"></div>
+<div style="display:flex;align-items:end"><button class="ghost" onclick="changeAdminPin()">Cambiar PIN</button></div>
+</div>
+</section>
+
+<section id="setup" class="tabpane card hidden">
+<h2>🌍 Grupos Mundial 2026</h2>
+<div class="notice">Grupos precargados. Puedes editar equipos si hay cambios oficiales.</div><br>
+<button class="primary" onclick="loadWorldCup2026()">Restaurar grupos 2026</button>
+<div id="groupsEditor"></div>
+</section>
+
+<section id="results" class="tabpane card hidden">
+<h2>✅ Resultados reales</h2>
+<p class="muted">Solo admin. Introduce marcadores, clasificados y extras. El ranking se recalcula automáticamente.</p>
+<button class="primary" onclick="saveResults()">Guardar resultados reales</button>
+<div id="resultsPanel" class="scroll" style="margin-top:16px"></div>
+</section>
+
+<section id="ranking" class="tabpane card hidden">
+<h2>🏅 Ranking</h2>
+<div class="scorebox">
+<div class="kpi"><span class="muted">Exactos</span><br><b id="kpiExact">0</b></div>
+<div class="kpi"><span class="muted">Signos</span><br><b id="kpiSign">0</b></div>
+<div class="kpi"><span class="muted">Extras</span><br><b id="kpiExtras">0</b></div>
+<div class="kpi"><span class="muted">Líder</span><br><b id="kpiLeader">-</b></div>
+</div><br>
+<table class="table"><thead><tr><th>#</th><th>Jugador</th><th>Puntos</th><th>Exactos</th><th>Signos</th><th>Extras</th><th>Campeón</th></tr></thead><tbody id="rankingBody"></tbody></table>
+</section>
+
+<section id="rules" class="tabpane card hidden">
+<h2>📋 Reglas</h2>
+<div class="notice">Validación flexible: “Borja Iglesias”, “Iglesias”, “B. Iglesias” o alias registrados pueden contar como el mismo jugador.</div><br>
+<div class="formgrid">
+<div><label>Resultado exacto</label><input id="ptsExact" type="number" onchange="saveRules()"></div>
+<div><label>Ganador/empate</label><input id="ptsSign" type="number" onchange="saveRules()"></div>
+<div><label>2 clasificados orden</label><input id="ptsBothOrder" type="number" onchange="saveRules()"></div>
+<div><label>2 clasificados invertidos</label><input id="ptsBothInvert" type="number" onchange="saveRules()"></div>
+<div><label>1 clasificado puesto correcto</label><input id="ptsOnePlace" type="number" onchange="saveRules()"></div>
+<div><label>1 clasificado puesto incorrecto</label><input id="ptsOneTeam" type="number" onchange="saveRules()"></div>
+<div><label>Extra fase grupos</label><input id="ptsGroupExtra" type="number" onchange="saveRules()"></div>
+<div><label>Pichichi</label><input id="ptsTopScorer" type="number" onchange="saveRules()"></div>
+<div><label>Pichichi español</label><input id="ptsSpanishTopScorer" type="number" onchange="saveRules()"></div>
+<div><label>Más goles Mundial</label><input id="ptsMostGFWorld" type="number" onchange="saveRules()"></div>
+<div><label>Campeón</label><input id="ptsChampion" type="number" onchange="saveRules()"></div>
+<div><label>MVP</label><input id="ptsMVP" type="number" onchange="saveRules()"></div>
+<div><label>Cada semifinalista</label><input id="ptsSemi" type="number" onchange="saveRules()"></div>
+</div>
+<br><h3>Alias especiales</h3>
+<div class="formgrid">
+<div><label>Nombre oficial</label><input id="aliasOfficial" placeholder="Cristiano Ronaldo"></div>
+<div><label>Alias separados por coma</label><input id="aliasList" placeholder="CR7, Cristiano, Ronaldo"></div>
+<div style="display:flex;align-items:end"><button class="ghost" onclick="addAlias()">Añadir alias</button></div>
+</div>
+<div id="aliasPanel"></div>
+</section>
+</main>
+</section>
+</div>
+
+<script>
+const DEFAULT_RULES={exact:10,sign:5,bothOrder:20,bothInvert:15,onePlace:10,oneTeam:5,groupExtra:10,topScorer:25,spanishTopScorer:25,mostGFWorld:25,champion:50,mvp:10,semi:20};
+let app=JSON.parse(localStorage.getItem("quinielaMundialPRO")||"null")||{mode:"player",adminPin:"admin2026",adminUnlocked:false,manualLock:false,deadline:"",activePlayerId:"",playerUnlocked:{},players:[],groups:[],predictions:{},aliases:{"cristiano ronaldo":["cr7","cristiano","ronaldo"],"lionel messi":["messi","leo messi"],"kylian mbappe":["mbappe","mbappé","k mbappe","k. mbappe"]},real:{matches:{},groupWinners:{},groupRunners:{},extras:emptyExtras()},rules:DEFAULT_RULES};
+function $(id){return document.getElementById(id)};function safeId(s){return String(s).replace(/[^a-zA-Z0-9_-]/g,"_")}function save(){localStorage.setItem("quinielaMundialPRO",JSON.stringify(app));renderAll()}
+function emptyExtras(){return{topScorer:"",spanishTopScorer:"",mostGFWorld:"",champion:"",mvp:"",semis:["","","",""],mostGF:"",leastGF:"",mostGA:"",leastGA:"",mostReds:"",mostPoints:"",leastPoints:""}}
+function emptyPred(){return{matches:{},groupWinners:{},groupRunners:{},extras:emptyExtras()}}
+function loadWorldCup2026(){app.groups=[["Grupo A",["México","Sudáfrica","Corea del Sur","Chequia"]],["Grupo B",["Canadá","Bosnia-Herzegovina","Qatar","Suiza"]],["Grupo C",["Brasil","Haití","Marruecos","Escocia"]],["Grupo D",["Estados Unidos","Australia","Paraguay","Turquía"]],["Grupo E",["Curazao","Ecuador","Alemania","Costa de Marfil"]],["Grupo F",["Países Bajos","Japón","Suecia","Túnez"]],["Grupo G",["Bélgica","Egipto","Irán","Nueva Zelanda"]],["Grupo H",["España","Cabo Verde","Arabia Saudí","Uruguay"]],["Grupo I",["Francia","Noruega","Senegal","Irak"]],["Grupo J",["Argentina","Argelia","Austria","Jordania"]],["Grupo K",["Portugal","RD Congo","Uzbekistán","Colombia"]],["Grupo L",["Inglaterra","Croacia","Ghana","Panamá"]]].map(x=>({name:x[0],teams:x[1]}));generateMatches();save()}
+function generateMatches(){app.groups.forEach(g=>{const t=g.teams;g.matches=[[t[0],t[1]],[t[2],t[3]],[t[0],t[2]],[t[3],t[1]],[t[3],t[0]],[t[1],t[2]]].map((m,i)=>({id:safeId(g.name)+"_"+i,home:m[0],away:m[1]}))})}
+function showTab(id,btn){if((id==="admin"||id==="results"||id==="setup")&&!app.adminUnlocked){alert("Entra como admin primero.");id="admin"}document.querySelectorAll(".tabpane").forEach(x=>x.classList.add("hidden"));$(id).classList.remove("hidden");document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));if(btn)btn.classList.add("active");renderAll()}
+function toggleMode(){app.mode=app.mode==="player"?"admin":"player";if(app.mode==="admin")showTab("admin");save()}
+function isLocked(){return app.manualLock || (app.deadline && new Date()>new Date(app.deadline))}
+function updateVisibility(){document.querySelectorAll(".adminOnly").forEach(el=>el.style.display=app.adminUnlocked||app.mode==="admin"?"block":"none");$("modeLabel").textContent=app.adminUnlocked?"Admin desbloqueado":"Jugador";$("lockLabel").textContent=isLocked()?"Bloqueada":"Abierta";$("lockLabel").className=isLocked()?"bad":"good";$("activePlayerLabel").textContent=(app.players.find(p=>p.id===app.activePlayerId)?.name)||"Sin seleccionar"}
+function unlockAdmin(){if($("adminPinInput").value===app.adminPin){app.adminUnlocked=true;app.mode="admin";save();alert("Admin desbloqueado")}else alert("PIN incorrecto")}
+function changeAdminPin(){const v=$("newAdminPin").value.trim();if(!v)return;app.adminPin=v;$("newAdminPin").value="";save();alert("PIN admin cambiado")}
+function saveDeadline(){app.deadline=$("deadlineInput").value;save()}function toggleManualLock(){app.manualLock=!app.manualLock;save()}
+function addPlayer(){const name=$("newPlayer").value.trim(),alias=$("newAlias").value.trim(),pin=$("newPin").value.trim();if(!name)return alert("Escribe un nombre.");const id="p_"+Date.now();app.players.push({id,name,alias,pin});app.predictions[id]=emptyPred();if(!app.activePlayerId)app.activePlayerId=id;$("newPlayer").value=$("newAlias").value=$("newPin").value="";save()}
+function deletePlayer(id){if(!app.adminUnlocked)return alert("Solo admin.");if(confirm("¿Eliminar jugador?")){app.players=app.players.filter(p=>p.id!==id);delete app.predictions[id];save()}}
+function renderPlayers(){$("playersList").innerHTML=app.players.length?app.players.map(p=>`<div class="player"><div><b>${p.name}</b> ${p.alias?`<span class="tag">${p.alias}</span>`:""}<br><span class="muted small">PIN: ${p.pin?"sí":"no"}</span></div><div><button class="ghost" onclick="setActive('${p.id}')">Usar</button> <button class="danger adminOnly" onclick="deletePlayer('${p.id}')">Eliminar</button></div></div>`).join(""):`<p class="muted">No hay jugadores.</p>`;$("activePlayer").innerHTML=app.players.map(p=>`<option value="${p.id}" ${p.id===app.activePlayerId?"selected":""}>${p.name}</option>`).join("")}
+function setActive(id){app.activePlayerId=id;save();showTab("predict")}function selectActivePlayer(){app.activePlayerId=$("activePlayer").value;save()}function unlockPlayer(){const p=app.players.find(x=>x.id===app.activePlayerId);if(!p)return;if(!p.pin||$("playerPin").value===p.pin){app.playerUnlocked[p.id]=true;save();alert("Jugador desbloqueado")}else alert("PIN incorrecto")}
+function playerCanEdit(){const p=app.players.find(x=>x.id===app.activePlayerId);if(!p)return false;if(app.adminUnlocked)return true;if(isLocked())return false;if(!p.pin)return true;return !!app.playerUnlocked[p.id]}
+function teamOptions(sel=""){return`<option value="">Seleccionar...</option>`+[...new Set(app.groups.flatMap(g=>g.teams))].map(t=>`<option ${t===sel?"selected":""}>${t}</option>`).join("")}
+function renderPredictions(){const p=app.predictions[app.activePlayerId]||emptyPred();if(!app.activePlayerId){$("predictionsPanel").innerHTML=`<p class="muted">Selecciona o crea jugador.</p>`;return}const can=playerCanEdit();$("predictionLockNotice").innerHTML=can?`<div class="notice"><b>Predicciones editables.</b></div>`:`<div class="notice"><b>Bloqueado:</b> no puedes editar ahora. Revisa PIN, cierre o modo admin.</div>`;$("predictionsPanel").className=can?"scroll":"scroll locked";$("predictionsPanel").innerHTML=app.groups.map(g=>`<div class="group"><h3>${g.name}</h3>${g.matches.map(m=>{const v=p.matches[m.id]||{};return`<div class="match"><div>${m.home}</div><input type="number" value="${v.h??""}" data-pred="${m.id}" data-side="h"><div class="center">-</div><input type="number" value="${v.a??""}" data-pred="${m.id}" data-side="a"><div>${m.away}</div></div>`}).join("")}<div class="twocol"><div><label>1º ${g.name}</label><select data-gw="${g.name}">${teamOptions(p.groupWinners[g.name]||"")}</select></div><div><label>2º ${g.name}</label><select data-gr="${g.name}">${teamOptions(p.groupRunners[g.name]||"")}</select></div></div></div>`).join("")+extrasHTML(p.extras,"pred")}
+function extrasHTML(e,prefix){return`<div class="group"><h3>Extras</h3><div class="formgrid">
+<div><label>Pichichi Mundial</label><input id="${prefix}TopScorer" value="${e.topScorer||""}"></div><div><label>Pichichi español</label><input id="${prefix}SpanishTopScorer" value="${e.spanishTopScorer||""}"></div><div><label>Equipo más goles Mundial</label><select id="${prefix}MostGFWorld">${teamOptions(e.mostGFWorld||"")}</select></div><div><label>Campeón</label><select id="${prefix}Champion">${teamOptions(e.champion||"")}</select></div><div><label>MVP</label><input id="${prefix}MVP" value="${e.mvp||""}"></div>${[0,1,2,3].map(i=>`<div><label>Semifinalista ${i+1}</label><select id="${prefix}Semi${i}">${teamOptions(e.semis?.[i]||"")}</select></div>`).join("")}<div><label>Más GF fase grupos</label><select id="${prefix}MostGF">${teamOptions(e.mostGF||"")}</select></div><div><label>Menos GF fase grupos</label><select id="${prefix}LeastGF">${teamOptions(e.leastGF||"")}</select></div><div><label>Más GC fase grupos</label><select id="${prefix}MostGA">${teamOptions(e.mostGA||"")}</select></div><div><label>Menos GC fase grupos</label><select id="${prefix}LeastGA">${teamOptions(e.leastGA||"")}</select></div><div><label>Más expulsiones</label><select id="${prefix}MostReds">${teamOptions(e.mostReds||"")}</select></div><div><label>Más puntos grupos</label><select id="${prefix}MostPoints">${teamOptions(e.mostPoints||"")}</select></div><div><label>Menos puntos grupos</label><select id="${prefix}LeastPoints">${teamOptions(e.leastPoints||"")}</select></div></div></div>`}
+function readExtras(prefix){return{topScorer:$(prefix+"TopScorer").value.trim(),spanishTopScorer:$(prefix+"SpanishTopScorer").value.trim(),mostGFWorld:$(prefix+"MostGFWorld").value,champion:$(prefix+"Champion").value,mvp:$(prefix+"MVP").value.trim(),semis:[0,1,2,3].map(i=>$(prefix+"Semi"+i).value),mostGF:$(prefix+"MostGF").value,leastGF:$(prefix+"LeastGF").value,mostGA:$(prefix+"MostGA").value,leastGA:$(prefix+"LeastGA").value,mostReds:$(prefix+"MostReds").value,mostPoints:$(prefix+"MostPoints").value,leastPoints:$(prefix+"LeastPoints").value}}
+function savePredictions(){if(!playerCanEdit())return alert("Predicciones bloqueadas.");const p=app.predictions[app.activePlayerId]||emptyPred();document.querySelectorAll("[data-pred]").forEach(inp=>{const id=inp.dataset.pred,side=inp.dataset.side;if(!p.matches[id])p.matches[id]={};p.matches[id][side]=inp.value===""?"":Number(inp.value)});document.querySelectorAll("[data-gw]").forEach(s=>p.groupWinners[s.dataset.gw]=s.value);document.querySelectorAll("[data-gr]").forEach(s=>p.groupRunners[s.dataset.gr]=s.value);p.extras=readExtras("pred");app.predictions[app.activePlayerId]=p;save();alert("Predicciones guardadas")}
+function renderResults(){$("resultsPanel").innerHTML=app.groups.map(g=>`<div class="group"><h3>${g.name}</h3>${g.matches.map(m=>{const v=app.real.matches[m.id]||{};return`<div class="match"><div>${m.home}</div><input type="number" value="${v.h??""}" data-real="${m.id}" data-side="h"><div class="center">-</div><input type="number" value="${v.a??""}" data-real="${m.id}" data-side="a"><div>${m.away}</div></div>`}).join("")}<div class="twocol"><div><label>1º real ${g.name}</label><select data-rgw="${g.name}">${teamOptions(app.real.groupWinners[g.name]||"")}</select></div><div><label>2º real ${g.name}</label><select data-rgr="${g.name}">${teamOptions(app.real.groupRunners[g.name]||"")}</select></div></div></div>`).join("")+extrasHTML(app.real.extras,"real")}
+function saveResults(){if(!app.adminUnlocked)return alert("Solo admin.");document.querySelectorAll("[data-real]").forEach(inp=>{const id=inp.dataset.real,side=inp.dataset.side;if(!app.real.matches[id])app.real.matches[id]={};app.real.matches[id][side]=inp.value===""?"":Number(inp.value)});document.querySelectorAll("[data-rgw]").forEach(s=>app.real.groupWinners[s.dataset.rgw]=s.value);document.querySelectorAll("[data-rgr]").forEach(s=>app.real.groupRunners[s.dataset.rgr]=s.value);app.real.extras=readExtras("real");save();alert("Resultados guardados")}
+function normalizeName(x){return String(x||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[.]/g,"").replace(/\s+/g," ").trim()}
+function nameMatches(pred,real){let p=normalizeName(pred),r=normalizeName(real);if(!p||!r)return false;if(p===r)return true;for(const [official,aliases] of Object.entries(app.aliases||{})){const all=[normalizeName(official),...aliases.map(normalizeName)];if(all.includes(p)&&all.includes(r))return true}const rp=r.split(" "),pp=p.split(" "),first=rp[0],last=rp[rp.length-1];if(p===last)return true;if(pp.length===2&&pp[0][0]===first[0]&&pp[1]===last)return true;if(pp.length===2&&pp[0]===first&&pp[1][0]===last[0])return true;return false}
+function sign(h,a){if(h===""||a===""||h===undefined||a===undefined)return "";return h>a?"H":h<a?"A":"D"}
+function scorePlayer(pid){const pred=app.predictions[pid]||emptyPred();let points=0,exact=0,signs=0,extras=0;app.groups.forEach(g=>{g.matches.forEach(m=>{const p=pred.matches[m.id]||{},r=app.real.matches[m.id]||{};if(p.h===""||p.a===""||r.h===""||r.a===""||p.h===undefined||r.h===undefined)return;if(+p.h===+r.h&&+p.a===+r.a){points+=app.rules.exact;exact++;return}if(sign(p.h,p.a)===sign(r.h,r.a)){points+=app.rules.sign;signs++}});const pw=pred.groupWinners[g.name],pr=pred.groupRunners[g.name],rw=app.real.groupWinners[g.name],rr=app.real.groupRunners[g.name];if(pw&&pr&&rw&&rr){if(pw===rw&&pr===rr){points+=app.rules.bothOrder;extras++}else if(pw===rr&&pr===rw){points+=app.rules.bothInvert;extras++}else{if(pw===rw)points+=app.rules.onePlace;else if(pw===rr)points+=app.rules.oneTeam;if(pr===rr)points+=app.rules.onePlace;else if(pr===rw)points+=app.rules.oneTeam}}});const p=pred.extras,r=app.real.extras;["mostGF","leastGF","mostGA","leastGA","mostReds","mostPoints","leastPoints"].forEach(k=>{if(p[k]&&p[k]===r[k]){points+=app.rules.groupExtra;extras++}});if(nameMatches(p.topScorer,r.topScorer)){points+=app.rules.topScorer;extras++}if(nameMatches(p.spanishTopScorer,r.spanishTopScorer)){points+=app.rules.spanishTopScorer;extras++}if(p.mostGFWorld&&p.mostGFWorld===r.mostGFWorld){points+=app.rules.mostGFWorld;extras++}if(p.champion&&p.champion===r.champion){points+=app.rules.champion;extras++}if(nameMatches(p.mvp,r.mvp)){points+=app.rules.mvp;extras++}const semis=new Set((r.semis||[]).filter(Boolean));(p.semis||[]).forEach(s=>{if(s&&semis.has(s)){points+=app.rules.semi;extras++}});return{points,exact,signs,extras,champion:p.champion||"-"}}
+function renderRanking(){const rows=app.players.map(p=>({player:p,...scorePlayer(p.id)})).sort((a,b)=>b.points-a.points||b.exact-a.exact||b.signs-a.signs);$("rankingBody").innerHTML=rows.length?rows.map((r,i)=>`<tr><td>${i+1}</td><td><b>${r.player.name}</b><br><span class="muted small">${r.player.alias||""}</span></td><td><b>${r.points}</b></td><td>${r.exact}</td><td>${r.signs}</td><td>${r.extras}</td><td>${r.champion}</td></tr>`).join(""):`<tr><td colspan="7" class="muted">No hay jugadores.</td></tr>`;$("kpiExact").textContent=rows.reduce((a,b)=>a+b.exact,0);$("kpiSign").textContent=rows.reduce((a,b)=>a+b.signs,0);$("kpiExtras").textContent=rows.reduce((a,b)=>a+b.extras,0);$("kpiLeader").textContent=rows[0]?.player.name||"-";$("kpiLeaderHome").textContent=rows[0]?.player.name||"-"}
+function renderSetup(){$("groupsEditor").innerHTML=app.groups.map((g,i)=>`<div class="group"><h3>${g.name}</h3><div class="formgrid">${g.teams.map((t,j)=>`<div><label>Equipo ${j+1}</label><input value="${t}" onchange="app.groups[${i}].teams[${j}]=this.value;generateMatches();save()"></div>`).join("")}</div></div>`).join("")}
+function saveRules(){["exact","sign","bothOrder","bothInvert","onePlace","oneTeam","groupExtra","topScorer","spanishTopScorer","mostGFWorld","champion","mvp","semi"].forEach(k=>app.rules[k]=+$("pts"+k[0].toUpperCase()+k.slice(1)).value);save()}
+function renderRules(){["exact","sign","bothOrder","bothInvert","onePlace","oneTeam","groupExtra","topScorer","spanishTopScorer","mostGFWorld","champion","mvp","semi"].forEach(k=>{$("pts"+k[0].toUpperCase()+k.slice(1)).value=app.rules[k]});renderAliases()}
+function addAlias(){const off=normalizeName($("aliasOfficial").value),list=$("aliasList").value.split(",").map(x=>x.trim()).filter(Boolean);if(!off||!list.length)return;app.aliases[off]=list;$("aliasOfficial").value=$("aliasList").value="";save()}
+function renderAliases(){$("aliasPanel").innerHTML=Object.entries(app.aliases||{}).map(([k,v])=>`<div class="player"><div><b>${k}</b><br><span class="muted small">${v.join(", ")}</span></div><button class="danger" onclick="delete app.aliases['${k}'];save()">Eliminar</button></div>`).join("")}
+function exportData(){const blob=new Blob([JSON.stringify(app,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="quiniela_mundial_PRO_datos.json";a.click();URL.revokeObjectURL(url)}
+function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{app=JSON.parse(r.result);save();alert("Datos importados")}catch(err){alert("Archivo no válido")}};r.readAsText(f)}
+function resetApp(){if(confirm("¿Borrar todo?")){localStorage.removeItem("quinielaMundialPRO");location.reload()}}
+function renderAll(){if(!app.groups.length)loadWorldCup2026();$("kpiPlayers").textContent=app.players.length;$("kpiPreds").textContent=Object.keys(app.predictions).length;$("kpiMatches").textContent=app.groups.reduce((a,g)=>a+(g.matches?.length||0),0);$("deadlineInput").value=app.deadline||"";renderPlayers();renderPredictions();renderResults();renderRanking();renderSetup();renderRules();updateVisibility()}
+if(!app.groups.length)loadWorldCup2026();else renderAll();
+</script>
+</body></html>
