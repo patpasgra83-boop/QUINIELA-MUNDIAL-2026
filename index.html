@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quiniela Mundial 2026 - Grupos + Extras</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#07111f;color:white}
+.wrap{max-width:1100px;margin:auto;padding:20px}
+.card{background:#102033;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:16px;margin:12px 0}
+button{border:0;border-radius:10px;padding:10px 14px;font-weight:bold;cursor:pointer;margin:4px}
+.primary{background:#38bdf8}
+input,select{width:100%;padding:10px;border-radius:10px;background:#071827;color:white;border:1px solid rgba(255,255,255,.2);margin:4px 0 10px}
+label{font-size:12px;color:#b6c6d8;font-weight:bold}
+.hidden{display:none}
+.group{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px;margin:12px 0}
+.row{
+display:grid;
+grid-template-columns:minmax(150px,1.4fr) 64px 24px 64px minmax(150px,1.4fr);
+gap:10px;
+align-items:center;
+margin:10px 0;
+padding:8px;
+border-radius:12px;
+background:rgba(255,255,255,.045)
+}
+.row div{
+display:flex;
+align-items:center;
+min-height:38px;
+font-weight:bold;
+line-height:1.15;
+word-break:normal;
+overflow-wrap:anywhere
+}
+.row div:first-child{
+justify-content:flex-end;
+text-align:right
+}
+.row div:last-child{
+justify-content:flex-start;
+text-align:left
+}
+.row input{
+text-align:center;
+font-weight:bold;
+height:38px
+}
+.notice{background:rgba(250,204,21,.15);border:1px solid rgba(250,204,21,.35);padding:12px;border-radius:12px;color:#fef9c3}
+.err{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.35);padding:12px;border-radius:12px;color:#fee2e2}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rankingTable{width:100%;border-collapse:collapse}
+.rankingTable th,.rankingTable td{border-bottom:1px solid rgba(255,255,255,.15);padding:8px;text-align:left}
+.rankingTable th{background:rgba(255,255,255,.08)}
+@media(max-width:700px){.row{grid-template-columns:minmax(82px,1fr) 46px 14px 46px minmax(82px,1fr);font-size:12px;gap:5px;padding:6px}.row input{height:34px;padding:6px}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🏆 Quiniela Mundial 2026</h1>
+<div class="card">
+Firebase: <b id="status">Conectando...</b><br>
+Jugador activo: <b id="activeName">Ninguno</b>
+</div>
+
+<section id="login" class="card">
+<h2>Entrar como jugador</h2>
+<label>Jugador</label>
+<select id="playerSelect"></select>
+<label>PIN</label>
+<input id="pinInput" placeholder="PIN">
+<button class="primary" onclick="loginPlayer()">Entrar</button>
+<div id="loginMsg"></div>
+
+<hr style="border-color:rgba(255,255,255,.15)">
+<h3>Crear jugador nuevo</h3>
+<label>Nombre</label><input id="newName">
+<label>PIN</label><input id="newPin">
+<button onclick="createPlayer()">Crear jugador</button>
+</section>
+
+<section id="app" class="hidden">
+<div class="card">
+<button onclick="showSection('predSec')">📝 Mis predicciones</button>
+<button onclick="showSection('rankingSec')">🏅 Ranking</button>
+<button onclick="showSection('normasSec')">📜 Normas</button>
+<button onclick="showSection('adminSec')">🛡️ Admin</button>
+</div>
+
+<section id="predSec" class="card appSection">
+<h2>Predicciones fase de grupos</h2>
+<div class="notice">Versión estable con grupos + extras. Los campeones y segundos de grupo están acotados a cada grupo.</div>
+<button class="primary" onclick="savePredictions()">Guardar predicciones</button>
+<div id="groupsPanel"></div>
+<div id="extrasPanel"></div>
+</section>
+
+<section id="rankingSec" class="card appSection hidden">
+<h2>🏅 Ranking</h2>
+<div class="notice">El ranking se calcula cuando el admin introduce resultados reales.</div>
+<table class="rankingTable">
+<thead><tr><th>#</th><th>Jugador</th><th>Total</th><th>Partidos</th><th>Clasificados</th><th>Extras</th></tr></thead>
+<tbody id="rankingBody"></tbody>
+</table>
+</section>
+
+<section id="normasSec" class="card appSection hidden">
+<h2>📜 Normas y puntuaciones</h2>
+<div class="group">
+<p><b>Resultado exacto:</b> 10 puntos.</p>
+<p><b>Ganador o empate:</b> 5 puntos.</p>
+<p><b>Dos clasificados del grupo en orden:</b> 20 puntos.</p>
+<p><b>Dos clasificados invertidos:</b> 15 puntos.</p>
+<p><b>Campeón:</b> 50 puntos.</p>
+<p><b>Pichichi:</b> 25 puntos.</p>
+<p><b>Pichichi español:</b> 25 puntos.</p>
+<p><b>MVP:</b> 10 puntos.</p>
+</div>
+</section>
+
+<section id="adminSec" class="card appSection hidden">
+<h2>🛡️ Panel admin</h2>
+<label>PIN admin</label>
+<input id="adminPinInput" placeholder="PIN de administrador">
+<button onclick="unlockAdmin()">Entrar como admin</button>
+<div id="adminPanel" class="hidden">
+<div class="notice">Introduce resultados reales y extras reales para calcular ranking.</div>
+<button class="primary" onclick="saveRealResults()">Guardar resultados reales</button>
+<div id="realGroupsPanel"></div>
+<div id="realExtrasPanel"></div>
+</div>
+</section>
+</section>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, setDoc, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDnYLCE0ZqDZF7dlawxackFggijLWlhHlM",
+  authDomain: "quiniela-mundial-2026-227d9.firebaseapp.com",
+  projectId: "quiniela-mundial-2026-227d9",
+  storageBucket: "quiniela-mundial-2026-227d9.firebasestorage.app",
+  messagingSenderId: "851908777552",
+  appId: "1:851908777552:web:a834f8874a7ac31ea2a355",
+  measurementId: "G-SR0V72PDGZ"
+};
+
+const groups = [
+["Grupo A",["México","Sudáfrica","Corea del Sur","Chequia"]],
+["Grupo B",["Canadá","Bosnia-Herzegovina","Qatar","Suiza"]],
+["Grupo C",["Brasil","Haití","Marruecos","Escocia"]],
+["Grupo D",["Estados Unidos","Australia","Paraguay","Turquía"]],
+["Grupo E",["Curazao","Ecuador","Alemania","Costa de Marfil"]],
+["Grupo F",["Países Bajos","Japón","Suecia","Túnez"]],
+["Grupo G",["Bélgica","Egipto","Irán","Nueva Zelanda"]],
+["Grupo H",["España","Cabo Verde","Arabia Saudí","Uruguay"]],
+["Grupo I",["Francia","Noruega","Senegal","Irak"]],
+["Grupo J",["Argentina","Argelia","Austria","Jordania"]],
+["Grupo K",["Portugal","RD Congo","Uzbekistán","Colombia"]],
+["Grupo L",["Inglaterra","Croacia","Ghana","Panamá"]]
+].map(([name,teams])=>({
+ name,teams,
+ matches:[[teams[0],teams[1]],[teams[2],teams[3]],[teams[0],teams[2]],[teams[3],teams[1]],[teams[3],teams[0]],[teams[1],teams[2]]]
+ .map((m,i)=>({id:name.replaceAll(" ","_")+"_"+i,home:m[0],away:m[1]}))
+}));
+
+let db;
+let players = [];
+let activePlayer = null;
+let prediction = {matches:{},winners:{},runners:{},extras:{}};
+let real = {matches:{},winners:{},runners:{},extras:{}};
+let adminUnlocked = false;
+let adminPin = 'admin2026';
+
+function $(id){return document.getElementById(id)}
+function emptyExtras(){
+  return {
+    champion:"",
+    topScorer:"",
+    spanishTopScorer:"",
+    mvp:"",
+    mostGFWorld:"",
+    mostGF:"",
+    leastGF:"",
+    mostGA:"",
+    leastGA:"",
+    mostReds:"",
+    mostPoints:"",
+    leastPoints:"",
+    semis:["","","",""]
+  };
+}
+function emptyPred(){return {matches:{},winners:{},runners:{},extras:emptyExtras()}}
+function allTeams(){return [...new Set(groups.flatMap(g=>g.teams))]}
+function teamOptions(selected=""){
+ return '<option value="">Seleccionar...</option>' + allTeams().map(t=>`<option ${t===selected?'selected':''}>${t}</option>`).join("");
+}
+function groupOptions(groupName, selected=""){
+ const g = groups.find(x=>x.name===groupName);
+ return '<option value="">Seleccionar...</option>' + g.teams.map(t=>`<option ${t===selected?'selected':''}>${t}</option>`).join("");
+}
+
+async function init(){
+ try{
+  const app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+  $("status").textContent = "Conectado";
+  await loadRealData();
+  onSnapshot(collection(db,"players"), snap=>{
+    players = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderPlayerSelect();
+  }, err=>{
+    $("status").textContent = "Error leyendo players";
+    $("loginMsg").innerHTML = `<div class="err">${err.message}</div>`;
+  });
+ }catch(e){
+  $("status").textContent = "Error";
+  $("loginMsg").innerHTML = `<div class="err">${e.message}</div>`;
+ }
+}
+init();
+
+
+window.showSection = function(id){
+ document.querySelectorAll(".appSection").forEach(s=>s.classList.add("hidden"));
+ document.getElementById(id).classList.remove("hidden");
+ if(id==="rankingSec") renderRanking();
+ if(id==="adminSec"){ renderRealGroups(); renderRealExtras(); }
+}
+
+async function loadRealData(){
+ const snap = await getDoc(doc(db,"app","real"));
+ real = snap.exists() ? {matches:{},winners:{},runners:{},extras:emptyExtras(),...snap.data()} : {matches:{},winners:{},runners:{},extras:emptyExtras()};
+ real.matches = real.matches || {};
+ real.winners = real.winners || {};
+ real.runners = real.runners || {};
+ real.extras = {...emptyExtras(), ...(real.extras||{})};
+}
+
+window.unlockAdmin = function(){
+ if($("adminPinInput").value === adminPin){
+   adminUnlocked = true;
+   $("adminPanel").classList.remove("hidden");
+   renderRealGroups();
+   renderRealExtras();
+ } else {
+   alert("PIN admin incorrecto");
+ }
+}
+
+function renderRealGroups(){
+ if(!adminUnlocked) return;
+ let html = "";
+ groups.forEach(g=>{
+  html += `<div class="group"><h3>${g.name}</h3>`;
+  g.matches.forEach(m=>{
+    const v = real.matches[m.id] || {};
+    html += `<div class="row">
+      <div>${m.home}</div>
+      <input data-real-match="${m.id}" data-side="h" type="number" value="${v.h??""}">
+      <div>-</div>
+      <input data-real-match="${m.id}" data-side="a" type="number" value="${v.a??""}">
+      <div>${m.away}</div>
+    </div>`;
+  });
+  html += `<label>1º real ${g.name}</label><select data-real-winner="${g.name}">${groupOptions(g.name, real.winners[g.name]||"")}</select>`;
+  html += `<label>2º real ${g.name}</label><select data-real-runner="${g.name}">${groupOptions(g.name, real.runners[g.name]||"")}</select>`;
+  html += `</div>`;
+ });
+ $("realGroupsPanel").innerHTML = html;
+}
+
+function renderRealExtras(){
+ if(!adminUnlocked) return;
+ const e = real.extras || emptyExtras();
+ $("realExtrasPanel").innerHTML = `
+ <div class="group">
+   <h2>🌟 Extras reales</h2>
+   <div class="grid2">
+     <div><label>Campeón real</label><select id="realChampion">${teamOptions(e.champion)}</select></div>
+     <div><label>Equipo más goles Mundial real</label><select id="realMostGFWorld">${teamOptions(e.mostGFWorld)}</select></div>
+     <div><label>Pichichi real</label><input id="realTopScorer" value="${e.topScorer||""}"></div>
+     <div><label>Pichichi español real</label><input id="realSpanishTopScorer" value="${e.spanishTopScorer||""}"></div>
+     <div><label>MVP real</label><input id="realMVP" value="${e.mvp||""}"></div>
+     <div><label>Más goles grupos real</label><select id="realMostGF">${teamOptions(e.mostGF)}</select></div>
+     <div><label>Menos goles grupos real</label><select id="realLeastGF">${teamOptions(e.leastGF)}</select></div>
+     <div><label>Más goles encajados real</label><select id="realMostGA">${teamOptions(e.mostGA)}</select></div>
+     <div><label>Menos goles encajados real</label><select id="realLeastGA">${teamOptions(e.leastGA)}</select></div>
+     <div><label>Más expulsiones real</label><select id="realMostReds">${teamOptions(e.mostReds)}</select></div>
+     <div><label>Más puntos grupos real</label><select id="realMostPoints">${teamOptions(e.mostPoints)}</select></div>
+     <div><label>Menos puntos grupos real</label><select id="realLeastPoints">${teamOptions(e.leastPoints)}</select></div>
+     <div><label>Semifinalista real 1</label><select id="realSemi0">${teamOptions(e.semis?.[0]||"")}</select></div>
+     <div><label>Semifinalista real 2</label><select id="realSemi1">${teamOptions(e.semis?.[1]||"")}</select></div>
+     <div><label>Semifinalista real 3</label><select id="realSemi2">${teamOptions(e.semis?.[2]||"")}</select></div>
+     <div><label>Semifinalista real 4</label><select id="realSemi3">${teamOptions(e.semis?.[3]||"")}</select></div>
+   </div>
+ </div>`;
+}
+
+function readRealExtras(){
+ return {
+   champion:$("realChampion").value,
+   mostGFWorld:$("realMostGFWorld").value,
+   topScorer:$("realTopScorer").value.trim(),
+   spanishTopScorer:$("realSpanishTopScorer").value.trim(),
+   mvp:$("realMVP").value.trim(),
+   mostGF:$("realMostGF").value,
+   leastGF:$("realLeastGF").value,
+   mostGA:$("realMostGA").value,
+   leastGA:$("realLeastGA").value,
+   mostReds:$("realMostReds").value,
+   mostPoints:$("realMostPoints").value,
+   leastPoints:$("realLeastPoints").value,
+   semis:[0,1,2,3].map(i=>$("realSemi"+i).value)
+ };
+}
+
+window.saveRealResults = async function(){
+ if(!adminUnlocked){ alert("Entra como admin"); return; }
+ document.querySelectorAll("[data-real-match]").forEach(inp=>{
+  const id = inp.dataset.realMatch;
+  const side = inp.dataset.side;
+  if(!real.matches[id]) real.matches[id] = {};
+  real.matches[id][side] = inp.value==="" ? "" : Number(inp.value);
+ });
+ document.querySelectorAll("[data-real-winner]").forEach(sel=> real.winners[sel.dataset.realWinner] = sel.value);
+ document.querySelectorAll("[data-real-runner]").forEach(sel=> real.runners[sel.dataset.realRunner] = sel.value);
+ real.extras = readRealExtras();
+ await setDoc(doc(db,"app","real"), real);
+ alert("Resultados reales guardados");
+ renderRanking();
+}
+
+function sign(h,a){ if(h>a) return "H"; if(a>h) return "A"; return "D"; }
+function norm(x){ return String(x||"").toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/[.]/g,"").trim(); }
+function nameOk(a,b){
+ a=norm(a); b=norm(b);
+ if(!a||!b) return false;
+ if(a===b) return true;
+ const parts=b.split(" "), first=parts[0], last=parts[parts.length-1];
+ return a===last || a===first[0]+" "+last || a===first+" "+last[0];
+}
+
+function scorePrediction(p){
+ p = {matches:{},winners:{},runners:{},extras:emptyExtras(),...p};
+ p.matches = p.matches || {};
+ p.winners = p.winners || {};
+ p.runners = p.runners || {};
+ p.extras = {...emptyExtras(), ...(p.extras||{})};
+ let matchPts=0, groupPts=0, extraPts=0;
+
+ groups.forEach(g=>{
+   g.matches.forEach(m=>{
+     const pr=p.matches[m.id]||{}, rr=real.matches[m.id]||{};
+     if(pr.h===""||pr.a===""||rr.h===""||rr.a===""||pr.h===undefined||rr.h===undefined) return;
+     if(+pr.h===+rr.h && +pr.a===+rr.a) matchPts += 10;
+     else if(sign(+pr.h,+pr.a)===sign(+rr.h,+rr.a)) matchPts += 5;
+   });
+   const pw=p.winners[g.name], prun=p.runners[g.name], rw=real.winners[g.name], rrun=real.runners[g.name];
+   if(pw&&prun&&rw&&rrun){
+     if(pw===rw && prun===rrun) groupPts += 20;
+     else if(pw===rrun && prun===rw) groupPts += 15;
+   }
+ });
+
+ if(p.extras.champion && p.extras.champion===real.extras.champion) extraPts += 50;
+ if(nameOk(p.extras.topScorer, real.extras.topScorer)) extraPts += 25;
+ if(nameOk(p.extras.spanishTopScorer, real.extras.spanishTopScorer)) extraPts += 25;
+ if(nameOk(p.extras.mvp, real.extras.mvp)) extraPts += 10;
+ ["mostGFWorld","mostGF","leastGF","mostGA","leastGA","mostReds","mostPoints","leastPoints"].forEach(k=>{
+   if(p.extras[k] && p.extras[k]===real.extras[k]) extraPts += 10;
+ });
+ const realSemis = new Set((real.extras.semis||[]).filter(Boolean));
+ (p.extras.semis||[]).forEach(s=>{ if(s && realSemis.has(s)) extraPts += 20; });
+
+ return {matchPts,groupPts,extraPts,total:matchPts+groupPts+extraPts};
+}
+
+async function renderRanking(){
+ await loadRealData();
+ const rows = [];
+ for(const player of players){
+   const snap = await getDoc(doc(db,"predictions",player.id));
+   const p = snap.exists() ? snap.data() : emptyPred();
+   rows.push({player,...scorePrediction(p)});
+ }
+ rows.sort((a,b)=>b.total-a.total);
+ $("rankingBody").innerHTML = rows.map((r,i)=>`
+   <tr>
+     <td>${i+1}</td>
+     <td>${r.player.name||""}</td>
+     <td><b>${r.total}</b></td>
+     <td>${r.matchPts}</td>
+     <td>${r.groupPts}</td>
+     <td>${r.extraPts}</td>
+   </tr>`).join("");
+}
+
+function renderPlayerSelect(){
+ $("playerSelect").innerHTML = players.map(p=>`<option value="${p.id}">${p.name||"(sin nombre)"}</option>`).join("");
+}
+
+window.createPlayer = async function(){
+ const name = $("newName").value.trim();
+ const pin = $("newPin").value.trim();
+ if(!name || !pin){ alert("Nombre y PIN son obligatorios"); return; }
+ const ref = await addDoc(collection(db,"players"), {name, pin, alias:""});
+ await setDoc(doc(db,"predictions",ref.id), emptyPred());
+ $("newName").value = "";
+ $("newPin").value = "";
+ alert("Jugador creado");
+}
+
+window.loginPlayer = async function(){
+ const id = $("playerSelect").value;
+ const p = players.find(x=>x.id===id);
+ if(!p){ alert("No hay jugador seleccionado"); return; }
+ if(String(p.pin||"") !== $("pinInput").value){ alert("PIN incorrecto"); return; }
+ activePlayer = p;
+ $("activeName").textContent = p.name;
+ const snap = await getDoc(doc(db,"predictions",p.id));
+ prediction = snap.exists() ? {...emptyPred(), ...snap.data()} : emptyPred();
+ prediction.matches = prediction.matches || {};
+ prediction.winners = prediction.winners || {};
+ prediction.runners = prediction.runners || {};
+ prediction.extras = {...emptyExtras(), ...(prediction.extras||{})};
+ if(!Array.isArray(prediction.extras.semis)) prediction.extras.semis=["","","",""];
+ $("login").classList.add("hidden");
+ $("app").classList.remove("hidden");
+ renderGroups();
+ renderExtras();
+}
+
+function renderGroups(){
+ let html = "";
+ groups.forEach(g=>{
+  html += `<div class="group"><h3>${g.name}</h3>`;
+  g.matches.forEach(m=>{
+    const v = prediction.matches[m.id] || {};
+    html += `<div class="row">
+      <div>${m.home}</div>
+      <input data-match="${m.id}" data-side="h" type="number" value="${v.h??""}">
+      <div>-</div>
+      <input data-match="${m.id}" data-side="a" type="number" value="${v.a??""}">
+      <div>${m.away}</div>
+    </div>`;
+  });
+  html += `<label>1º ${g.name}</label><select data-winner="${g.name}">${groupOptions(g.name, prediction.winners[g.name]||"")}</select>`;
+  html += `<label>2º ${g.name}</label><select data-runner="${g.name}">${groupOptions(g.name, prediction.runners[g.name]||"")}</select>`;
+  html += `</div>`;
+ });
+ $("groupsPanel").innerHTML = html;
+}
+
+function renderExtras(){
+ const e = prediction.extras || emptyExtras();
+ $("extrasPanel").innerHTML = `
+ <div class="group">
+   <h2>🌟 Extras del Mundial</h2>
+   <div class="grid2">
+     <div><label>Campeón del Mundial</label><select id="extraChampion">${teamOptions(e.champion)}</select></div>
+     <div><label>Equipo con más goles en todo el Mundial</label><select id="extraMostGFWorld">${teamOptions(e.mostGFWorld)}</select></div>
+     <div><label>Pichichi del Mundial</label><input id="extraTopScorer" value="${e.topScorer||""}" placeholder="Ej. Mbappé"></div>
+     <div><label>Pichichi español</label><input id="extraSpanishTopScorer" value="${e.spanishTopScorer||""}" placeholder="Ej. Morata"></div>
+     <div><label>MVP del Mundial</label><input id="extraMVP" value="${e.mvp||""}" placeholder="Ej. Messi"></div>
+     <div><label>Más goles fase grupos</label><select id="extraMostGF">${teamOptions(e.mostGF)}</select></div>
+     <div><label>Menos goles fase grupos</label><select id="extraLeastGF">${teamOptions(e.leastGF)}</select></div>
+     <div><label>Más goles encajados fase grupos</label><select id="extraMostGA">${teamOptions(e.mostGA)}</select></div>
+     <div><label>Menos goles encajados fase grupos</label><select id="extraLeastGA">${teamOptions(e.leastGA)}</select></div>
+     <div><label>Más expulsiones</label><select id="extraMostReds">${teamOptions(e.mostReds)}</select></div>
+     <div><label>Más puntos fase grupos</label><select id="extraMostPoints">${teamOptions(e.mostPoints)}</select></div>
+     <div><label>Menos puntos fase grupos</label><select id="extraLeastPoints">${teamOptions(e.leastPoints)}</select></div>
+     <div><label>Semifinalista 1</label><select id="extraSemi0">${teamOptions(e.semis?.[0]||"")}</select></div>
+     <div><label>Semifinalista 2</label><select id="extraSemi1">${teamOptions(e.semis?.[1]||"")}</select></div>
+     <div><label>Semifinalista 3</label><select id="extraSemi2">${teamOptions(e.semis?.[2]||"")}</select></div>
+     <div><label>Semifinalista 4</label><select id="extraSemi3">${teamOptions(e.semis?.[3]||"")}</select></div>
+   </div>
+ </div>`;
+}
+
+function readExtras(){
+ return {
+   champion:$("extraChampion").value,
+   mostGFWorld:$("extraMostGFWorld").value,
+   topScorer:$("extraTopScorer").value.trim(),
+   spanishTopScorer:$("extraSpanishTopScorer").value.trim(),
+   mvp:$("extraMVP").value.trim(),
+   mostGF:$("extraMostGF").value,
+   leastGF:$("extraLeastGF").value,
+   mostGA:$("extraMostGA").value,
+   leastGA:$("extraLeastGA").value,
+   mostReds:$("extraMostReds").value,
+   mostPoints:$("extraMostPoints").value,
+   leastPoints:$("extraLeastPoints").value,
+   semis:[0,1,2,3].map(i=>$("extraSemi"+i).value)
+ };
+}
+
+window.savePredictions = async function(){
+ if(!activePlayer){alert("Entra como jugador"); return;}
+ document.querySelectorAll("[data-match]").forEach(inp=>{
+  const id = inp.dataset.match;
+  const side = inp.dataset.side;
+  if(!prediction.matches[id]) prediction.matches[id] = {};
+  prediction.matches[id][side] = inp.value==="" ? "" : Number(inp.value);
+ });
+ document.querySelectorAll("[data-winner]").forEach(sel=> prediction.winners[sel.dataset.winner] = sel.value);
+ document.querySelectorAll("[data-runner]").forEach(sel=> prediction.runners[sel.dataset.runner] = sel.value);
+ prediction.extras = readExtras();
+ await setDoc(doc(db,"predictions",activePlayer.id), prediction);
+ alert("Predicciones y extras guardados");
+}
+</script>
+</body>
+</html>
