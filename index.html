@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quiniela Mundial 2026 - Grupos + Extras</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#07111f;color:white}
+.wrap{max-width:1100px;margin:auto;padding:20px}
+.card{background:#102033;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:16px;margin:12px 0}
+button{border:0;border-radius:10px;padding:10px 14px;font-weight:bold;cursor:pointer;margin:4px}
+.primary{background:#38bdf8}
+input,select{width:100%;padding:10px;border-radius:10px;background:#071827;color:white;border:1px solid rgba(255,255,255,.2);margin:4px 0 10px}
+label{font-size:12px;color:#b6c6d8;font-weight:bold}
+.hidden{display:none}
+.group{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px;margin:12px 0}
+.row{display:grid;grid-template-columns:1fr 60px 20px 60px 1fr;gap:8px;align-items:center;margin:6px 0}
+.row input{text-align:center}
+.notice{background:rgba(250,204,21,.15);border:1px solid rgba(250,204,21,.35);padding:12px;border-radius:12px;color:#fef9c3}
+.err{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.35);padding:12px;border-radius:12px;color:#fee2e2}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:700px){.row{grid-template-columns:1fr 50px 15px 50px 1fr}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🏆 Quiniela Mundial 2026</h1>
+<div class="card">
+Firebase: <b id="status">Conectando...</b><br>
+Jugador activo: <b id="activeName">Ninguno</b>
+</div>
+
+<section id="login" class="card">
+<h2>Entrar como jugador</h2>
+<label>Jugador</label>
+<select id="playerSelect"></select>
+<label>PIN</label>
+<input id="pinInput" placeholder="PIN">
+<button class="primary" onclick="loginPlayer()">Entrar</button>
+<div id="loginMsg"></div>
+
+<hr style="border-color:rgba(255,255,255,.15)">
+<h3>Crear jugador nuevo</h3>
+<label>Nombre</label><input id="newName">
+<label>PIN</label><input id="newPin">
+<button onclick="createPlayer()">Crear jugador</button>
+</section>
+
+<section id="app" class="hidden">
+<div class="card">
+<h2>Predicciones fase de grupos</h2>
+<div class="notice">Versión estable con grupos + extras. Los campeones y segundos de grupo están acotados a cada grupo.</div>
+<button class="primary" onclick="savePredictions()">Guardar predicciones</button>
+<div id="groupsPanel"></div>
+<div id="extrasPanel"></div>
+</div>
+</section>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, setDoc, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDnYLCE0ZqDZF7dlawxackFggijLWlhHlM",
+  authDomain: "quiniela-mundial-2026-227d9.firebaseapp.com",
+  projectId: "quiniela-mundial-2026-227d9",
+  storageBucket: "quiniela-mundial-2026-227d9.firebasestorage.app",
+  messagingSenderId: "851908777552",
+  appId: "1:851908777552:web:a834f8874a7ac31ea2a355",
+  measurementId: "G-SR0V72PDGZ"
+};
+
+const groups = [
+["Grupo A",["México","Sudáfrica","Corea del Sur","Chequia"]],
+["Grupo B",["Canadá","Bosnia-Herzegovina","Qatar","Suiza"]],
+["Grupo C",["Brasil","Haití","Marruecos","Escocia"]],
+["Grupo D",["Estados Unidos","Australia","Paraguay","Turquía"]],
+["Grupo E",["Curazao","Ecuador","Alemania","Costa de Marfil"]],
+["Grupo F",["Países Bajos","Japón","Suecia","Túnez"]],
+["Grupo G",["Bélgica","Egipto","Irán","Nueva Zelanda"]],
+["Grupo H",["España","Cabo Verde","Arabia Saudí","Uruguay"]],
+["Grupo I",["Francia","Noruega","Senegal","Irak"]],
+["Grupo J",["Argentina","Argelia","Austria","Jordania"]],
+["Grupo K",["Portugal","RD Congo","Uzbekistán","Colombia"]],
+["Grupo L",["Inglaterra","Croacia","Ghana","Panamá"]]
+].map(([name,teams])=>({
+ name,teams,
+ matches:[[teams[0],teams[1]],[teams[2],teams[3]],[teams[0],teams[2]],[teams[3],teams[1]],[teams[3],teams[0]],[teams[1],teams[2]]]
+ .map((m,i)=>({id:name.replaceAll(" ","_")+"_"+i,home:m[0],away:m[1]}))
+}));
+
+let db;
+let players = [];
+let activePlayer = null;
+let prediction = {matches:{},winners:{},runners:{},extras:{}};
+
+function $(id){return document.getElementById(id)}
+function emptyExtras(){
+  return {
+    champion:"",
+    topScorer:"",
+    spanishTopScorer:"",
+    mvp:"",
+    mostGFWorld:"",
+    mostGF:"",
+    leastGF:"",
+    mostGA:"",
+    leastGA:"",
+    mostReds:"",
+    mostPoints:"",
+    leastPoints:"",
+    semis:["","","",""]
+  };
+}
+function emptyPred(){return {matches:{},winners:{},runners:{},extras:emptyExtras()}}
+function allTeams(){return [...new Set(groups.flatMap(g=>g.teams))]}
+function teamOptions(selected=""){
+ return '<option value="">Seleccionar...</option>' + allTeams().map(t=>`<option ${t===selected?'selected':''}>${t}</option>`).join("");
+}
+function groupOptions(groupName, selected=""){
+ const g = groups.find(x=>x.name===groupName);
+ return '<option value="">Seleccionar...</option>' + g.teams.map(t=>`<option ${t===selected?'selected':''}>${t}</option>`).join("");
+}
+
+async function init(){
+ try{
+  const app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+  $("status").textContent = "Conectado";
+  onSnapshot(collection(db,"players"), snap=>{
+    players = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderPlayerSelect();
+  }, err=>{
+    $("status").textContent = "Error leyendo players";
+    $("loginMsg").innerHTML = `<div class="err">${err.message}</div>`;
+  });
+ }catch(e){
+  $("status").textContent = "Error";
+  $("loginMsg").innerHTML = `<div class="err">${e.message}</div>`;
+ }
+}
+init();
+
+function renderPlayerSelect(){
+ $("playerSelect").innerHTML = players.map(p=>`<option value="${p.id}">${p.name||"(sin nombre)"}</option>`).join("");
+}
+
+window.createPlayer = async function(){
+ const name = $("newName").value.trim();
+ const pin = $("newPin").value.trim();
+ if(!name || !pin){ alert("Nombre y PIN son obligatorios"); return; }
+ const ref = await addDoc(collection(db,"players"), {name, pin, alias:""});
+ await setDoc(doc(db,"predictions",ref.id), emptyPred());
+ $("newName").value = "";
+ $("newPin").value = "";
+ alert("Jugador creado");
+}
+
+window.loginPlayer = async function(){
+ const id = $("playerSelect").value;
+ const p = players.find(x=>x.id===id);
+ if(!p){ alert("No hay jugador seleccionado"); return; }
+ if(String(p.pin||"") !== $("pinInput").value){ alert("PIN incorrecto"); return; }
+ activePlayer = p;
+ $("activeName").textContent = p.name;
+ const snap = await getDoc(doc(db,"predictions",p.id));
+ prediction = snap.exists() ? {...emptyPred(), ...snap.data()} : emptyPred();
+ prediction.matches = prediction.matches || {};
+ prediction.winners = prediction.winners || {};
+ prediction.runners = prediction.runners || {};
+ prediction.extras = {...emptyExtras(), ...(prediction.extras||{})};
+ if(!Array.isArray(prediction.extras.semis)) prediction.extras.semis=["","","",""];
+ $("login").classList.add("hidden");
+ $("app").classList.remove("hidden");
+ renderGroups();
+ renderExtras();
+}
+
+function renderGroups(){
+ let html = "";
+ groups.forEach(g=>{
+  html += `<div class="group"><h3>${g.name}</h3>`;
+  g.matches.forEach(m=>{
+    const v = prediction.matches[m.id] || {};
+    html += `<div class="row">
+      <div>${m.home}</div>
+      <input data-match="${m.id}" data-side="h" type="number" value="${v.h??""}">
+      <div>-</div>
+      <input data-match="${m.id}" data-side="a" type="number" value="${v.a??""}">
+      <div>${m.away}</div>
+    </div>`;
+  });
+  html += `<label>1º ${g.name}</label><select data-winner="${g.name}">${groupOptions(g.name, prediction.winners[g.name]||"")}</select>`;
+  html += `<label>2º ${g.name}</label><select data-runner="${g.name}">${groupOptions(g.name, prediction.runners[g.name]||"")}</select>`;
+  html += `</div>`;
+ });
+ $("groupsPanel").innerHTML = html;
+}
+
+function renderExtras(){
+ const e = prediction.extras || emptyExtras();
+ $("extrasPanel").innerHTML = `
+ <div class="group">
+   <h2>🌟 Extras del Mundial</h2>
+   <div class="grid2">
+     <div><label>Campeón del Mundial</label><select id="extraChampion">${teamOptions(e.champion)}</select></div>
+     <div><label>Equipo con más goles en todo el Mundial</label><select id="extraMostGFWorld">${teamOptions(e.mostGFWorld)}</select></div>
+     <div><label>Pichichi del Mundial</label><input id="extraTopScorer" value="${e.topScorer||""}" placeholder="Ej. Mbappé"></div>
+     <div><label>Pichichi español</label><input id="extraSpanishTopScorer" value="${e.spanishTopScorer||""}" placeholder="Ej. Morata"></div>
+     <div><label>MVP del Mundial</label><input id="extraMVP" value="${e.mvp||""}" placeholder="Ej. Messi"></div>
+     <div><label>Más goles fase grupos</label><select id="extraMostGF">${teamOptions(e.mostGF)}</select></div>
+     <div><label>Menos goles fase grupos</label><select id="extraLeastGF">${teamOptions(e.leastGF)}</select></div>
+     <div><label>Más goles encajados fase grupos</label><select id="extraMostGA">${teamOptions(e.mostGA)}</select></div>
+     <div><label>Menos goles encajados fase grupos</label><select id="extraLeastGA">${teamOptions(e.leastGA)}</select></div>
+     <div><label>Más expulsiones</label><select id="extraMostReds">${teamOptions(e.mostReds)}</select></div>
+     <div><label>Más puntos fase grupos</label><select id="extraMostPoints">${teamOptions(e.mostPoints)}</select></div>
+     <div><label>Menos puntos fase grupos</label><select id="extraLeastPoints">${teamOptions(e.leastPoints)}</select></div>
+     <div><label>Semifinalista 1</label><select id="extraSemi0">${teamOptions(e.semis?.[0]||"")}</select></div>
+     <div><label>Semifinalista 2</label><select id="extraSemi1">${teamOptions(e.semis?.[1]||"")}</select></div>
+     <div><label>Semifinalista 3</label><select id="extraSemi2">${teamOptions(e.semis?.[2]||"")}</select></div>
+     <div><label>Semifinalista 4</label><select id="extraSemi3">${teamOptions(e.semis?.[3]||"")}</select></div>
+   </div>
+ </div>`;
+}
+
+function readExtras(){
+ return {
+   champion:$("extraChampion").value,
+   mostGFWorld:$("extraMostGFWorld").value,
+   topScorer:$("extraTopScorer").value.trim(),
+   spanishTopScorer:$("extraSpanishTopScorer").value.trim(),
+   mvp:$("extraMVP").value.trim(),
+   mostGF:$("extraMostGF").value,
+   leastGF:$("extraLeastGF").value,
+   mostGA:$("extraMostGA").value,
+   leastGA:$("extraLeastGA").value,
+   mostReds:$("extraMostReds").value,
+   mostPoints:$("extraMostPoints").value,
+   leastPoints:$("extraLeastPoints").value,
+   semis:[0,1,2,3].map(i=>$("extraSemi"+i).value)
+ };
+}
+
+window.savePredictions = async function(){
+ if(!activePlayer){alert("Entra como jugador"); return;}
+ document.querySelectorAll("[data-match]").forEach(inp=>{
+  const id = inp.dataset.match;
+  const side = inp.dataset.side;
+  if(!prediction.matches[id]) prediction.matches[id] = {};
+  prediction.matches[id][side] = inp.value==="" ? "" : Number(inp.value);
+ });
+ document.querySelectorAll("[data-winner]").forEach(sel=> prediction.winners[sel.dataset.winner] = sel.value);
+ document.querySelectorAll("[data-runner]").forEach(sel=> prediction.runners[sel.dataset.runner] = sel.value);
+ prediction.extras = readExtras();
+ await setDoc(doc(db,"predictions",activePlayer.id), prediction);
+ alert("Predicciones y extras guardados");
+}
+</script>
+</body>
+</html>
