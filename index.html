@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quiniela Mundial 2026 Online</title>
+<style>
+:root{
+  --bg:#07111f;
+  --panel:rgba(16,32,51,.90);
+  --line:rgba(255,255,255,.14);
+  --txt:#f8fafc;
+  --mut:#b6c6d8;
+  --green:#22c55e;
+  --blue:#38bdf8;
+  --yellow:#facc15;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  color:var(--txt);
+  min-height:100vh;
+  background:
+    linear-gradient(rgba(3,7,18,.78),rgba(3,7,18,.91)),
+    url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1800&q=80') center/cover fixed;
+}
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(circle at top left,rgba(34,197,94,.20),transparent 30%),
+    radial-gradient(circle at bottom right,rgba(56,189,248,.18),transparent 32%);
+  pointer-events:none;
+}
+.wrap{position:relative;max-width:1220px;margin:auto;padding:24px}
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:18px;
+  margin:14px 0;
+  box-shadow:0 18px 50px rgba(0,0,0,.28);
+  backdrop-filter:blur(8px);
+}
+h1{font-size:42px;margin:8px 0;font-weight:900;letter-spacing:-1px}
+h2,h3{margin:0 0 10px}
+.muted{color:var(--mut)}
+button{
+  border:0;
+  border-radius:14px;
+  padding:11px 15px;
+  font-weight:900;
+  cursor:pointer;
+  margin:4px;
+  background:#e2e8f0;
+  color:#07111f;
+}
+.primary{background:linear-gradient(135deg,#22c55e,#38bdf8)}
+.danger{background:#fee2e2;color:#991b1b}
+.ghost{background:rgba(255,255,255,.08);color:white;border:1px solid var(--line)}
+input,select{
+  width:100%;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.18);
+  background:#071827;
+  color:white;
+  margin:4px 0 10px;
+}
+label{font-size:12px;color:var(--mut);font-weight:900}
+.grid{display:grid;grid-template-columns:260px 1fr;gap:16px}
+.loginGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.tabs{display:flex;flex-direction:column;position:sticky;top:14px}
+.tab{background:rgba(255,255,255,.08);color:white;border:1px solid var(--line);text-align:left}
+.active{background:linear-gradient(135deg,#16a34a,#0ea5e9)!important}
+.hidden{display:none!important}
+.notice{background:rgba(250,204,21,.13);border:1px solid rgba(250,204,21,.30);padding:12px;border-radius:16px;color:#fef9c3}
+.success{background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.30);padding:12px;border-radius:16px;color:#dcfce7}
+.error{background:rgba(239,68,68,.14);border:1px solid rgba(239,68,68,.30);padding:12px;border-radius:16px;color:#fee2e2}
+.row{display:grid;grid-template-columns:1fr 65px 20px 65px 1fr;gap:8px;align-items:center;margin:7px 0}
+.row input{text-align:center}
+.koRow{display:grid;grid-template-columns:1fr 60px 20px 60px 1fr 1fr 1fr;gap:8px;align-items:center;margin:8px 0}
+.koRow input[type=number]{text-align:center}
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{border-bottom:1px solid var(--line);padding:9px;text-align:left}
+.table th{background:rgba(255,255,255,.07)}
+.group{border:1px solid var(--line);background:rgba(255,255,255,.055);border-radius:18px;padding:14px;margin:12px 0}
+.topbar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.hero{
+  background:linear-gradient(135deg,rgba(34,197,94,.20),rgba(56,189,248,.14));
+  border:1px solid var(--line);
+  border-radius:28px;
+  padding:22px;
+}
+.pill{display:inline-block;border-radius:999px;background:rgba(255,255,255,.12);padding:5px 10px;font-size:12px;font-weight:900}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.kpi{background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:16px;padding:14px}
+.kpi b{font-size:24px}
+.ruleGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media(max-width:900px){
+  .grid,.loginGrid,.kpis,.ruleGrid{grid-template-columns:1fr}
+  .tabs{position:static}
+  .row{grid-template-columns:1fr 55px 20px 55px 1fr}
+  .koRow{grid-template-columns:1fr 55px 20px 55px 1fr}
+  .koRow select,.koRow input:last-child{grid-column:1/-1}
+  h1{font-size:31px}
+  .wrap{padding:14px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <div class="hero">
+    <div class="pill">🏟️ Modo Mundial</div>
+    <h1>🏆 Quiniela Mundial 2026</h1>
+    <p class="muted"><b>¿Te crees Nostradamus del fútbol?</b> Demuestra que sabes más que los comentaristas.</p>
+  </div>
+  <div class="card">Firebase: <b id="status">Conectando...</b><br>Sesión: <b id="sessionLabel">Sin iniciar</b><br>Quiniela: <b id="lockState">Abierta</b></div>
+</div>
+
+<section id="loginScreen">
+<div class="loginGrid">
+<div class="card">
+<h2>👤 Entrar como jugador</h2>
+<label>Jugador</label><select id="loginPlayer"></select>
+<label>PIN</label><input id="loginPin" placeholder="PIN del jugador">
+<button class="primary" onclick="loginPlayer()">Entrar como jugador</button>
+<hr style="border-color:rgba(255,255,255,.12)">
+<h3>Crear jugador</h3>
+<label>Nombre</label><input id="newName" placeholder="Ej. Patri">
+<label>Alias opcional</label><input id="newAlias" placeholder="Ej. Nostradamus">
+<label>PIN</label><input id="newPin" placeholder="Elige un PIN">
+<button onclick="addPlayer()">Crear jugador</button>
+</div>
+<div class="card">
+<h2>🛡️ Entrar como administrador</h2>
+<label>PIN admin</label><input id="adminPin" placeholder="PIN de administrador">
+<button class="primary" onclick="loginAdmin()">Entrar como admin</button>
+<div class="notice">Acceso reservado al administrador de la quiniela.</div>
+</div>
+</div>
+<div id="loginMessage"></div>
+</section>
+
+<section id="appScreen" class="hidden">
+<section class="grid">
+<aside class="card tabs">
+<button class="tab active" onclick="show('inicio',this)">🏠 Inicio</button>
+<button class="tab" onclick="show('predicciones',this)">📝 Predicciones</button>
+<button class="tab" onclick="show('ranking',this)">🏅 Ranking</button>
+<button class="tab" onclick="show('normas',this)">📜 Normas</button>
+<button class="tab adminOnly" onclick="show('jugadores',this)">👥 Jugadores</button>
+<button class="tab adminOnly" onclick="show('resultados',this)">✅ Resultados</button>
+<button class="tab adminOnly" onclick="show('adminPanel',this)">🛡️ Admin</button>
+<button class="danger" onclick="logout()">Cerrar sesión</button>
+</aside>
+<main>
+<section id="inicio" class="card pane">
+<h2>🏠 Panel principal</h2>
+<div class="kpis">
+  <div class="kpi">Jugadores<br><b id="nPlayers">0</b></div>
+  <div class="kpi">Predicciones<br><b id="nPreds">0</b></div>
+  <div class="kpi">Líder<br><b id="leader">-</b></div>
+</div>
+<br>
+<div id="homeMessage" class="success"></div>
+<div class="notice" style="margin-top:12px">Versión visual estable: mantiene Firebase, jugadores, ranking y grupos acotados.</div>
+</section>
+<section id="predicciones" class="card pane hidden"><h2>📝 Predicciones</h2><div id="predictionInfo" class="notice"></div><button class="primary" onclick="savePrediction()">Guardar predicciones online</button><div id="predictionPanel"></div></section>
+<section id="ranking" class="card pane hidden"><h2>🏅 Ranking</h2><table class="table"><thead><tr><th>#</th><th>Jugador</th><th>Puntos</th><th>Exactos</th><th>Signos</th><th>Extras</th><th>Campeón</th></tr></thead><tbody id="rankingBody"></tbody></table></section>
+<section id="normas" class="card pane hidden">
+<h2>📜 Normas y puntuaciones</h2>
+<div class="ruleGrid">
+  <div class="group">
+    <h3>🏆 Fase de grupos</h3>
+    <p>Resultado exacto: <b>10 puntos</b></p>
+    <p>Ganador o empate acertado: <b>5 puntos</b></p>
+    <p>Dos clasificados en orden: <b>20 puntos</b></p>
+    <p>Dos clasificados invertidos: <b>15 puntos</b></p>
+  </div>
+  <div class="group">
+    <h3>🌟 Extras</h3>
+    <p>Campeón: <b>50 puntos</b></p>
+    <p>Pichichi: <b>25 puntos</b></p>
+    <p>MVP: <b>10 puntos</b></p>
+    <p>Se aceptan variantes de nombre tipo “Iglesias” o “B. Iglesias”.</p>
+  </div>
+  <div class="group">
+    <h3>⚽ Fase 2</h3>
+    <p>Resultado exacto: <b>20 puntos</b></p>
+    <p>Clasificado correcto: <b>10 puntos</b> si no se acierta exacto.</p>
+    <p>Primer goleador: <b>5 puntos</b></p>
+  </div>
+  <div class="group">
+    <h3>🚫 Coherencia</h3>
+    <p>No vale poner 0-0 y primer goleador.</p>
+    <p>No vale que gane un equipo y clasifique otro.</p>
+    <p>El admin puede resolver incidencias y ajustar puntuaciones si procede.</p>
+  </div>
+</div>
+</section>
+<section id="jugadores" class="card pane hidden"><h2>👥 Gestión de jugadores</h2><div id="playersList"></div></section>
+<section id="resultados" class="card pane hidden"><h2>✅ Resultados reales</h2><button class="primary" onclick="saveResults()">Guardar resultados reales</button><div id="resultsPanel"></div></section>
+<section id="adminPanel" class="card pane hidden"><h2>🛡️ Panel admin</h2><button onclick="toggleLock()">Bloquear/desbloquear quiniela</button><label>Nuevo PIN admin</label><input id="newAdminPin" placeholder="Nuevo PIN admin"><button onclick="changeAdminPin()">Cambiar PIN admin</button></section>
+</main>
+</section>
+</section>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyDnYLCE0ZqDZF7dlawxackFggijLWlhHlM",authDomain:"quiniela-mundial-2026-227d9.firebaseapp.com",projectId:"quiniela-mundial-2026-227d9",storageBucket:"quiniela-mundial-2026-227d9.firebasestorage.app",messagingSenderId:"851908777552",appId:"1:851908777552:web:a834f8874a7ac31ea2a355",measurementId:"G-SR0V72PDGZ"};
+const groups=[["Grupo A",["México","Sudáfrica","Corea del Sur","Chequia"]],["Grupo B",["Canadá","Bosnia-Herzegovina","Qatar","Suiza"]],["Grupo C",["Brasil","Haití","Marruecos","Escocia"]],["Grupo D",["Estados Unidos","Australia","Paraguay","Turquía"]],["Grupo E",["Curazao","Ecuador","Alemania","Costa de Marfil"]],["Grupo F",["Países Bajos","Japón","Suecia","Túnez"]],["Grupo G",["Bélgica","Egipto","Irán","Nueva Zelanda"]],["Grupo H",["España","Cabo Verde","Arabia Saudí","Uruguay"]],["Grupo I",["Francia","Noruega","Senegal","Irak"]],["Grupo J",["Argentina","Argelia","Austria","Jordania"]],["Grupo K",["Portugal","RD Congo","Uzbekistán","Colombia"]],["Grupo L",["Inglaterra","Croacia","Ghana","Panamá"]]].map(([name,teams])=>({name,teams,matches:[[teams[0],teams[1]],[teams[2],teams[3]],[teams[0],teams[2]],[teams[3],teams[1]],[teams[3],teams[0]],[teams[1],teams[2]]].map((m,i)=>({id:name.replaceAll(" ","_")+"_"+i,home:m[0],away:m[1]}))}));
+function emptyPred(){return{matches:{},winners:{},runners:{},extras:{champion:"",topScorer:"",mvp:""}}}
+function $(id){return document.getElementById(id)}
+function allTeams(){return [...new Set(groups.flatMap(g=>g.teams))]}
+function teamOptions(v=""){return '<option value="">Seleccionar...</option>'+allTeams().map(t=>`<option ${t===v?'selected':''}>${t}</option>`).join("")}
+function msg(text,type="success"){$("loginMessage").innerHTML=`<div class="${type} card">${text}</div>`}
+let db,players=[],predictions={},real={matches:{},winners:{},runners:{},extras:{champion:"",topScorer:"",mvp:""}},config={adminPin:"admin2026",locked:false},session={role:null,playerId:null};
+async function init(){const app=initializeApp(firebaseConfig);db=getFirestore(app);$("status").textContent="Conectado";if(!(await getDoc(doc(db,"app","config"))).exists())await setDoc(doc(db,"app","config"),config);if(!(await getDoc(doc(db,"app","real"))).exists())await setDoc(doc(db,"app","real"),real);onSnapshot(doc(db,"app","config"),s=>{config=s.data()||config;render()});onSnapshot(doc(db,"app","real"),s=>{real=s.data()||real;render()});onSnapshot(collection(db,"players"),s=>{players=s.docs.map(d=>({id:d.id,...d.data()}));render()});onSnapshot(collection(db,"predictions"),s=>{predictions={};s.docs.forEach(d=>predictions[d.id]=d.data());render()})}
+init().catch(e=>{$("status").textContent="Error";msg("Error Firebase: "+e.message,"error")});
+window.addPlayer=async function(){const name=$("newName").value.trim(),alias=$("newAlias").value.trim(),pin=$("newPin").value.trim();if(!name||!pin)return msg("Nombre y PIN son obligatorios.","error");const p=await addDoc(collection(db,"players"),{name,alias,pin});await setDoc(doc(db,"predictions",p.id),emptyPred());$("newName").value=$("newAlias").value=$("newPin").value="";msg("Jugador creado. Ya puede entrar con su PIN.")}
+window.loginPlayer=function(){const id=$("loginPlayer").value,p=players.find(x=>x.id===id);if(!p)return msg("Selecciona un jugador.","error");if($("loginPin").value!==p.pin)return msg("PIN de jugador incorrecto.","error");session={role:"player",playerId:id};openApp()}
+window.loginAdmin=function(){if($("adminPin").value!==config.adminPin)return msg("PIN admin incorrecto.","error");session={role:"admin",playerId:null};openApp()}
+function openApp(){$("loginScreen").classList.add("hidden");$("appScreen").classList.remove("hidden");$("sessionLabel").textContent=session.role==="admin"?"Administrador":players.find(p=>p.id===session.playerId)?.name||"Jugador";document.querySelectorAll(".adminOnly").forEach(x=>x.style.display=session.role==="admin"?"block":"none");$("homeMessage").textContent=session.role==="admin"?"Modo administrador activo.":"Jugador activo. Solo puedes editar tus predicciones.";render()}
+window.logout=function(){session={role:null,playerId:null};$("appScreen").classList.add("hidden");$("loginScreen").classList.remove("hidden");$("sessionLabel").textContent="Sin iniciar";render()}
+window.show=function(id,btn){document.querySelectorAll(".pane").forEach(x=>x.classList.add("hidden"));$(id).classList.remove("hidden");document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));if(btn)btn.classList.add("active");render()}
+window.deletePlayer=async function(id){if(session.role!=="admin")return;if(confirm("¿Eliminar jugador?")){await deleteDoc(doc(db,"players",id));await deleteDoc(doc(db,"predictions",id))}}
+window.toggleLock=async function(){if(session.role!=="admin")return;await updateDoc(doc(db,"app","config"),{locked:!config.locked})}
+window.changeAdminPin=async function(){if(session.role!=="admin")return;const v=$("newAdminPin").value.trim();if(v){await updateDoc(doc(db,"app","config"),{adminPin:v});alert("PIN cambiado")}}
+window.savePrediction=async function(){if(session.role!=="player")return alert("Entra como jugador.");if(config.locked)return alert("La quiniela está bloqueada.");const id=session.playerId,p=predictions[id]||emptyPred();document.querySelectorAll("[data-pred]").forEach(i=>{if(!p.matches[i.dataset.id])p.matches[i.dataset.id]={};p.matches[i.dataset.id][i.dataset.side]=i.value===""?"":Number(i.value)});document.querySelectorAll("[data-win]").forEach(s=>p.winners[s.dataset.group]=s.value);document.querySelectorAll("[data-run]").forEach(s=>p.runners[s.dataset.group]=s.value);p.extras={champion:$("predChampion").value,topScorer:$("predTopScorer").value,mvp:$("predMVP").value};await setDoc(doc(db,"predictions",id),p);alert("Predicciones guardadas online.")}
+window.saveResults=async function(){if(session.role!=="admin")return alert("Solo admin.");document.querySelectorAll("[data-real]").forEach(i=>{if(!real.matches[i.dataset.id])real.matches[i.dataset.id]={};real.matches[i.dataset.id][i.dataset.side]=i.value===""?"":Number(i.value)});document.querySelectorAll("[data-rwin]").forEach(s=>real.winners[s.dataset.group]=s.value);document.querySelectorAll("[data-rrun]").forEach(s=>real.runners[s.dataset.group]=s.value);real.extras={champion:$("realChampion").value,topScorer:$("realTopScorer").value,mvp:$("realMVP").value};await setDoc(doc(db,"app","real"),real);alert("Resultados guardados.")}
+function render(){$("lockState").textContent=config.locked?"Bloqueada":"Abierta";$("loginPlayer").innerHTML=players.map(p=>`<option value="${p.id}">${p.name}</option>`).join("");$("nPlayers").textContent=players.length;$("nPreds").textContent=Object.keys(predictions).length;renderPlayers();renderPredictions();renderResults();renderRanking()}
+function renderPlayers(){$("playersList").innerHTML=players.map(p=>`<div class="card"><b>${p.name}</b> <span class="muted">${p.alias||""}</span><button class="danger" onclick="deletePlayer('${p.id}')">Eliminar</button></div>`).join("")}
+function renderPredictions(){if(session.role!=="player"){$("predictionInfo").textContent="Entra como jugador para editar predicciones.";$("predictionPanel").innerHTML="";return}const p=predictions[session.playerId]||emptyPred();$("predictionInfo").textContent=config.locked?"Quiniela bloqueada. No puedes editar.":"Sesión de jugador activa. Puedes guardar tus predicciones.";$("predictionPanel").innerHTML=groups.map(g=>`<div class="group"><h3>${g.name}</h3>${g.matches.map(m=>{const v=p.matches[m.id]||{};return `<div class="row"><div>${m.home}</div><input data-pred data-id="${m.id}" data-side="h" type="number" value="${v.h??""}"><div>-</div><input data-pred data-id="${m.id}" data-side="a" type="number" value="${v.a??""}"><div>${m.away}</div></div>`}).join("")}<label>1º ${g.name}</label><select data-win data-group="${g.name}">${groupTeamOptions(g.name,p.winners[g.name]||"")}</select><label>2º ${g.name}</label><select data-run data-group="${g.name}">${groupTeamOptions(g.name,p.runners[g.name]||"")}</select></div>`).join("")+`<div class="group"><h3>Extras</h3><label>Campeón</label><select id="predChampion">${teamOptions(p.extras.champion)}</select><label>Pichichi</label><input id="predTopScorer" value="${p.extras.topScorer||""}"><label>MVP</label><input id="predMVP" value="${p.extras.mvp||""}"></div>`}
+function renderResults(){$("resultsPanel").innerHTML=groups.map(g=>`<div class="group"><h3>${g.name}</h3>${g.matches.map(m=>{const v=real.matches[m.id]||{};return `<div class="row"><div>${m.home}</div><input data-real data-id="${m.id}" data-side="h" type="number" value="${v.h??""}"><div>-</div><input data-real data-id="${m.id}" data-side="a" type="number" value="${v.a??""}"><div>${m.away}</div></div>`}).join("")}<label>1º real ${g.name}</label><select data-rwin data-group="${g.name}">${groupTeamOptions(g.name,real.winners[g.name]||"")}</select><label>2º real ${g.name}</label><select data-rrun data-group="${g.name}">${groupTeamOptions(g.name,real.runners[g.name]||"")}</select></div>`).join("")+`<div class="group"><h3>Extras reales</h3><label>Campeón</label><select id="realChampion">${teamOptions(real.extras.champion)}</select><label>Pichichi</label><input id="realTopScorer" value="${real.extras.topScorer||""}"><label>MVP</label><input id="realMVP" value="${real.extras.mvp||""}"></div>`}
+function norm(x){return String(x||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[.]/g,"").trim()}function nameOk(p,r){p=norm(p);r=norm(r);if(!p||!r)return false;if(p===r)return true;const parts=r.split(" "),first=parts[0],last=parts.at(-1);return p===last||p===first[0]+" "+last||p===first+" "+last[0]}function sign(h,a){return h>a?"H":h<a?"A":"D"}
+function score(id){const p=predictions[id]||emptyPred();let pts=0,ex=0,sg=0,ext=0;groups.forEach(g=>{g.matches.forEach(m=>{const a=p.matches[m.id]||{},r=real.matches[m.id]||{};if(a.h===""||a.a===""||r.h===""||r.a===""||a.h===undefined||r.h===undefined)return;if(+a.h===+r.h&&+a.a===+r.a){pts+=10;ex++}else if(sign(a.h,a.a)===sign(r.h,r.a)){pts+=5;sg++}});if(p.winners[g.name]&&p.runners[g.name]&&real.winners[g.name]&&real.runners[g.name]){if(p.winners[g.name]===real.winners[g.name]&&p.runners[g.name]===real.runners[g.name]){pts+=20;ext++}else if(p.winners[g.name]===real.runners[g.name]&&p.runners[g.name]===real.winners[g.name]){pts+=15;ext++}}});if(p.extras.champion&&p.extras.champion===real.extras.champion){pts+=50;ext++}if(nameOk(p.extras.topScorer,real.extras.topScorer)){pts+=25;ext++}if(nameOk(p.extras.mvp,real.extras.mvp)){pts+=10;ext++}return{pts,ex,sg,ext,champ:p.extras.champion||"-"}}
+function renderRanking(){const rows=players.map(p=>({p,...score(p.id)})).sort((a,b)=>b.pts-a.pts);$("leader").textContent=rows[0]?.p.name||"-";$("rankingBody").innerHTML=rows.map((r,i)=>`<tr><td>${i+1}</td><td>${r.p.name}</td><td><b>${r.pts}</b></td><td>${r.ex}</td><td>${r.sg}</td><td>${r.ext}</td><td>${r.champ}</td></tr>`).join("")}
+</script>
+</body>
+</html>
